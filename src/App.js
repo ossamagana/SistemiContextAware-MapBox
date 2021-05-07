@@ -1,9 +1,13 @@
 import React, { useState, useRef, useEffect } from "react"
-import useSwr from "swr"
+
 import ReactMapGL, { Marker, FlyToInterpolator } from "react-map-gl"
 import useSupercluster from "use-supercluster"
 import "./App.css"
 import axios from "axios"
+import mapboxgl from "mapbox-gl"
+// @ts-ignore
+// eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
+mapboxgl.workerClass = require("worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker").default
 
 const fetcher = url => axios.get(url).then(res => res.data)
 
@@ -57,11 +61,6 @@ export default function App() {
     useEffect(() => {
         console.log(citiesData)
     }, [citiesData])
-
-    const crimes = Object.entries(citiesData).reduce((acc, [city, cityData]) => {
-        acc.push(...cityData.crimes)
-        return acc
-    }, [])
 
     const points = Object.entries(citiesData).reduce((acc, [city, cityData]) => {
         acc.push(...cityData.points)
