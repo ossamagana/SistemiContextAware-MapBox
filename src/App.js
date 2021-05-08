@@ -1,10 +1,5 @@
 import React, { useState, useRef, useEffect } from "react"
-import ReactMapGL, {
-    Marker,
-    FlyToInterpolator,
-    GeolocateControl,
-    NavigationControl
-} from "react-map-gl"
+import ReactMapGL, { Marker, FlyToInterpolator, GeolocateControl, NavigationControl } from "react-map-gl"
 import useSupercluster from "use-supercluster"
 import "./App.css"
 import axios from "axios"
