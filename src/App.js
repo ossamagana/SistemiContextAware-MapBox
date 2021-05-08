@@ -1,5 +1,10 @@
 import React, { useState, useRef, useEffect } from "react"
-import ReactMapGL, { Marker, FlyToInterpolator } from "react-map-gl"
+import ReactMapGL, {
+    Marker,
+    FlyToInterpolator,
+    GeolocateControl,
+    NavigationControl
+} from "react-map-gl"
 import useSupercluster from "use-supercluster"
 import "./App.css"
 import axios from "axios"
@@ -31,6 +36,16 @@ const cities = {
         lat: 53.4723272,
         lng: -2.2935018,
     },
+}
+
+const geolocateControlStyle = {
+    right: 10,
+    top: 10,
+}
+
+const navControlStyle = {
+    right: 10,
+    top: 50,
 }
 
 const CrimeMarker = ({ latitude, longitude, setViewport }) => {
@@ -150,6 +165,12 @@ export default function App() {
 
     return (
         <div>
+            <div className="sidebarStyle">
+                <div>
+                    Longitude: {viewport.longitude.toFixed(4)} | Latitude: {viewport.latitude.toFixed(4)} | Zoom:{" "}
+                    {viewport.zoom.toFixed(2)}
+                </div>
+            </div>
             <ReactMapGL
                 {...viewport}
                 maxZoom={20}
@@ -161,6 +182,13 @@ export default function App() {
                 }}
                 ref={mapRef}
             >
+                <GeolocateControl
+                    style={geolocateControlStyle}
+                    positionOptions={{ enableHighAccuracy: true }}
+                    trackUserLocation={true}
+                    //auto
+                />
+                <NavigationControl style={navControlStyle} />
                 {clusters.map(cluster => {
                     const [longitude, latitude] = cluster.geometry.coordinates
                     const { cluster: isCluster, point_count: pointCount } = cluster.properties
