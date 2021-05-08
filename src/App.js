@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect } from "react"
-
 import ReactMapGL, { Marker, FlyToInterpolator } from "react-map-gl"
 import useSupercluster from "use-supercluster"
 import "./App.css"
 import axios from "axios"
 import mapboxgl from "mapbox-gl"
+import { Div, Text } from "atomize"
+import { motion } from "framer-motion"
+import { IonImg } from "@ionic/react"
+import { theme } from "./config"
 // @ts-ignore
 // eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
 mapboxgl.workerClass = require("worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker").default
@@ -30,10 +33,79 @@ const cities = {
     },
 }
 
+const CrimeMarker = ({ latitude, longitude, setViewport }) => {
+    return (
+        <Marker latitude={latitude} longitude={longitude}>
+            <motion.div whileTap={{ scale: 0.9 }}>
+                <Div
+                    w={"1.5rem"}
+                    onClick={() => {
+                        setViewport(prevState => ({
+                            ...prevState,
+                            latitude: latitude,
+                            longitude: longitude,
+                        }))
+                    }}
+                    m={"-1rem"}
+                    transition
+                >
+                    <IonImg
+                        src={require("./assets/jail.png")}
+                        style={{
+                            transition: "all 0.3s ease-in-out",
+                        }}
+                    />
+                </Div>
+            </motion.div>
+        </Marker>
+    )
+}
+
+const MarkerCluster = ({ latitude, longitude, pointCount, points, clusters, setViewport }) => {
+    return (
+        <Marker latitude={latitude} longitude={longitude}>
+            <motion.div whileTap={{ scale: 0.9 }}>
+                <Div
+                    d="flex"
+                    m="-1rem"
+                    justify="center"
+                    align="center"
+                    w={`${25 + (pointCount / points?.length) * 40}px`}
+                    h={`${25 + (pointCount / points?.length) * 40}px`}
+                    rounded="circle"
+                    bg={theme.colors.white}
+                    border="2px solid"
+                    borderColor={theme.colors.gunmetal}
+                    onClick={() => {
+                        const expansionZoom = Math.min(
+                            clusters?.supercluster.getClusterExpansionZoom(clusters?.cluster.id),
+                            20
+                        )
+
+                        setViewport(prevState => ({
+                            ...prevState,
+                            latitude,
+                            longitude,
+                            zoom: expansionZoom,
+                            transitionInterpolator: new FlyToInterpolator({
+                                speed: 2,
+                            }),
+                            transitionDuration: "auto",
+                        }))
+                    }}
+                >
+                    <Text textWeight="bold" textSize="subheader" textColor={theme.colors.gunmetal}>
+                        {pointCount}
+                    </Text>
+                </Div>
+            </motion.div>
+        </Marker>
+    )
+}
 export default function App() {
     const [viewport, setViewport] = useState({
-        latitude: 52.6376,
-        longitude: -1.135171,
+        latitude: cities.London.lat,
+        longitude: cities.London.lng,
         width: "100vw",
         height: "100vh",
         zoom: 12,
@@ -95,43 +167,25 @@ export default function App() {
 
                     if (isCluster) {
                         return (
-                            <Marker key={`cluster-${cluster.id}`} latitude={latitude} longitude={longitude}>
-                                <div
-                                    className="cluster-marker"
-                                    style={{
-                                        width: `${10 + (pointCount / points.length) * 20}px`,
-                                        height: `${10 + (pointCount / points.length) * 20}px`,
-                                    }}
-                                    onClick={() => {
-                                        const expansionZoom = Math.min(
-                                            supercluster.getClusterExpansionZoom(cluster.id),
-                                            20
-                                        )
-
-                                        setViewport({
-                                            ...viewport,
-                                            latitude,
-                                            longitude,
-                                            zoom: expansionZoom,
-                                            transitionInterpolator: new FlyToInterpolator({
-                                                speed: 2,
-                                            }),
-                                            transitionDuration: "auto",
-                                        })
-                                    }}
-                                >
-                                    {pointCount}
-                                </div>
-                            </Marker>
+                            <MarkerCluster
+                                key={`cluster-${cluster.id}`}
+                                latitude={latitude}
+                                longitude={longitude}
+                                pointCount={pointCount}
+                                points={points}
+                                clusters={{ cluster, supercluster }}
+                                setViewport={setViewport}
+                            />
                         )
                     }
 
                     return (
-                        <Marker key={`crime-${cluster.properties.crimeId}`} latitude={latitude} longitude={longitude}>
-                            <button className="crime-marker">
-                                <img src="/custody.svg" alt="crime doesn't pay" />
-                            </button>
-                        </Marker>
+                        <CrimeMarker
+                            key={`crime-${cluster.properties.crimeId}`}
+                            latitude={latitude}
+                            longitude={longitude}
+                            setViewport={setViewport}
+                        />
                     )
                 })}
             </ReactMapGL>
