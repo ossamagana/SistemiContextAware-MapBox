@@ -60,7 +60,7 @@ const CrimeMarker = ({ latitude, longitude, setViewport }) => {
                     transition
                 >
                     <IonImg
-                        src={require("./assets/jail.png")}
+                        src="jail.png"
                         style={{
                             transition: "all 0.3s ease-in-out",
                         }}
@@ -80,8 +80,8 @@ const MarkerCluster = ({ latitude, longitude, pointCount, points, clusters, setV
                     m="-1rem"
                     justify="center"
                     align="center"
-                    w={`${25 + (pointCount / points?.length) * 40}px`}
-                    h={`${25 + (pointCount / points?.length) * 40}px`}
+                    w={`${35 + (pointCount / points?.length) * 40}px`}
+                    h={`${35 + (pointCount / points?.length) * 40}px`}
                     rounded="circle"
                     bg={theme.colors.white}
                     border="2px solid"
@@ -126,18 +126,20 @@ export default function App() {
     useEffect(() => {
         Object.entries(cities).forEach(([city, cityData]) => {
             const url = `https://data.police.uk/api/crimes-street/all-crime?lat=${cityData.lat}&lng=${cityData.lng}&date=2021-01`
-            fetcher(url).then(data => {
-                const newCrimes = data ? data.slice(0, 2000) : []
-                const newPoints = newCrimes.map(crime => ({
-                    type: "Feature",
-                    properties: { cluster: false, crimeId: crime.id, category: crime.category },
-                    geometry: {
-                        type: "Point",
-                        coordinates: [parseFloat(crime.location.longitude), parseFloat(crime.location.latitude)],
-                    },
-                }))
-                setCitiesData(prevState => ({ ...prevState, [city]: { crimes: newCrimes, points: newPoints } }))
-            })
+            fetcher(url)
+                .then(data => {
+                    const newCrimes = data ? data.slice(0, 2000) : []
+                    const newPoints = newCrimes.map(crime => ({
+                        type: "Feature",
+                        properties: { cluster: false, crimeId: crime.id, category: crime.category },
+                        geometry: {
+                            type: "Point",
+                            coordinates: [parseFloat(crime.location.longitude), parseFloat(crime.location.latitude)],
+                        },
+                    }))
+                    setCitiesData(prevState => ({ ...prevState, [city]: { crimes: newCrimes, points: newPoints } }))
+                })
+                .catch(error => console.error("Fetcher:", error))
         })
     }, [])
     useEffect(() => {
@@ -155,17 +157,17 @@ export default function App() {
         points,
         bounds,
         zoom: viewport.zoom,
-        options: { radius: 75, maxZoom: 20 },
+        options: { radius: 75, maxZoom: 15 },
     })
 
     return (
-        <div>
-            <div className="sidebarStyle">
-                <div>
+        <Div>
+            <Div className="sidebarStyle">
+                <Div>
                     Longitude: {viewport.longitude.toFixed(4)} | Latitude: {viewport.latitude.toFixed(4)} | Zoom:{" "}
                     {viewport.zoom.toFixed(2)}
-                </div>
-            </div>
+                </Div>
+            </Div>
             <ReactMapGL
                 {...viewport}
                 maxZoom={20}
@@ -212,6 +214,6 @@ export default function App() {
                     )
                 })}
             </ReactMapGL>
-        </div>
+        </Div>
     )
 }
